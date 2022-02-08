@@ -9,7 +9,7 @@ System connects to vMix tally system over IP, and converts tally data to ATEM co
 
 1. [Arduino Uno R3](https://store-usa.arduino.cc/products/arduino-uno-rev3/)
 2. [Arduino Ethernet Shield 2](https://store-usa.arduino.cc/products/arduino-ethernet-shield-2)
-3. [Blackmagic 3G Shield](https://www.blackmagicdesign.com/developer/product/arduino)
+3. [Blackmagic 3G‑SDI Shield for Arduino](https://www.blackmagicdesign.com/developer/product/arduino)
 
 # Instructions
 
