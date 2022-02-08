@@ -17,6 +17,8 @@ System connects to vMix tally system over IP, and converts tally data to ATEM co
 2. Configure Vmix Address
 3. Set conversion map for vMix input IDs to Blackmagic camera IDs
 
+vMix tally data does not provide the GUID/hash for the input, only the input ID.  So be careful when re-ordering vMix input numbers.  The tool currently supports 8 cameras, but can easily expanded to more.
+
 # Roadmap / Future Features
 
 - Web configuration
