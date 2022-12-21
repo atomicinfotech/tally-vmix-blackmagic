@@ -1,149 +1,104 @@
-/*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
-
-  Addition to original blink sketch also turns on and off camera 1's tally indicator.
-
-  Most Arduinos have an on-board LED you can control. On the Uno and
-  Leonardo, it is attached to digital pin 13. If you're unsure what
-  pin the on-board LED is connected to on your Arduino model, check
-  the documentation at http://www.arduino.cc
-
-  This example code is in the public domain.
-*/
-
-#include <BMDSDIControl.h>                                // need to include the library
-#include <Arduino_JSON.h>
+#include <BMDSDIControl.h>
 #include <SPI.h>
 #include <Ethernet.h>
 
-
-// EEPROM Addresses
-const byte CHECK = 0; // Has a configuration
-const byte MAC1 = 1; // Mac address
-const byte MAC2 = 2; 
-const byte MAC3 = 3;
-const byte MAC4 = 4;
-const byte MAC5 = 5;
-const byte MAC6 = 6;
-const byte IP1 = 7; // Static IP-address
-const byte IP2 = 8;
-const byte IP3 = 9;
-const byte IP4 = 10;
-const byte GW1 = 11; // Gateway
-const byte GW2 = 12;
-const byte GW3 = 13; 
-const byte GW4 = 14;
-const byte MASK1 = 15; // Subnet Mask
-const byte MASK2 = 16;
-const byte MASK3 = 17;
-const byte MASK4 = 18;
-const byte DHCP = 19; // DHCP boolean
-const byte VMIX1 = 20; // Static IP-address
-const byte VMIX2 = 21;
-const byte VMIX3 = 22;
-const byte VMIX4 = 23;
-const byte CAM1 = 24; // Static IP-address
-const byte CAM2 = 25;
-const byte CAM3 = 26;
-const byte CAM4 = 27;
-const byte CAM5 = 24; // Static IP-address
-const byte CAM6 = 25;
-const byte CAM7 = 26;
-const byte CAM8 = 27;
-
-
 int VMIX_PORT = 8099;
-String M_TALLY = "";
-int TALLY_NR = 1;
-char currentState = -1;
-char screen = 1;
 
 #define TALLY_COUNT 100
-char tallymap[TALLY_COUNT];   
-
 
 //MAC is A8:61:0A:AE:74:D2
 //OUI is A8:61:0A
 EthernetClient client;
-
+EthernetServer server(80);
 
 BMD_SDITallyControl_I2C sdiTallyControl(0x6E);            // define the Tally object using I2C using the default shield address
 
 // the setup function runs once when you press reset or power the board
 void setup()
 {
-
+  
   //TODO
-  //Load settings from EEPROM
+  //Load settings from SD Card
   //look flag bite to see if EEPROM is initialized, and if not zero out positions we'll be using
   //check and see if we have a MAC address set
-  //randomly generate MAC address if we don't have one wtarting with A8:61:0A:00:00
+  //randomly generate MAC address if we don't have one starting with A8:61:0A:00:00
   //check if using DHCP
   //if not using DHCP snag ip, subnet and gateway and use that
-  //
+
+  char tallymap[TALLY_COUNT];
   
+  tallymap[4] = 1;      // map vmix input 1 to ATEM input 1 
+  tallymap[5] = 2;      // map vmix input 1 to ATEM input 1 
+  tallymap[6] = 3;      // map vmix input 1 to ATEM input 1 
+  tallymap[7] = 4;      // map vmix input 1 to ATEM input 1 
+  tallymap[8] = 5;      // map vmix input 1 to ATEM input 1 
 
-  
-  tallymap[2] = 1;      // map vmix input 1 to ATEM input 1 
-  tallymap[3] = 2;      // map vmix input 1 to ATEM input 1 
-  tallymap[4] = 3;      // map vmix input 1 to ATEM input 1 
-  tallymap[5] = 4;      // map vmix input 1 to ATEM input 1 
-
-
-
-  sdiTallyControl.begin();                                 // initialize tally control
-  sdiTallyControl.setOverride(true);                       // enable tally override
 
   pinMode(13, OUTPUT);                                     // initialize digital pin 13 as an output
   Serial.begin(115200);
 
   // the media access control (ethernet hardware) address for the shield:
-  byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0x74, 0xD2 };  
+  byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0x74, 0xD3 };  
   //the IP address for the shield:
   //byte ip[] = { 10, 0, 0, 177 };
 
-  Serial.println("Connecting to ethernet");
+  Serial.println(F("Network..."));
   Ethernet.begin(mac);
 
-  byte vmixip[] = { 192, 168, 10, 225 };
+  byte vmixip[] = { 10, 9, 11, 106 };
   
   delay(2000);
 
-  Serial.println("Connecting to vmix");
+  IPAddress myIPAddress = Ethernet.localIP(); 
+  Serial.println(myIPAddress);
+    
+  /* vMix connections 
+  Serial.println(F("vMix..."));
   if(client.connect(vmixip, VMIX_PORT)) {
-    Serial.println("Connected to vmix");
+    Serial.println(F("OK"));
     client.println("SUBSCRIBE TALLY");
   } else {
-    Serial.println("Unable to connect to vmix");
+    Serial.println(F("FAIL"));
   }
+  */
   
-}
+  server.begin();
 
+  sdiTallyControl.begin();                                 // initialize tally control
+  sdiTallyControl.setOverride(true);                       // enable tally override
+}
+    
 // the loop function runs over and over again forever
 void loop()
 {
 
-
   while (client.available()) {
-    String data = client.readStringUntil('\r\n');
-    //Serial.println(data);
-    handleData(data);
+    String rawdata = client.readStringUntil('\r\n');
+    Serial.println(rawdata);
+ 
+    //handleData("TALLY OK 1222010000");
+    handleData(rawdata);
+    
   }
-  
+
+
+  //WEB SERVER
+  webclient();
 }
 
-
-void handleData(String data)
+void handleData(String rawdata)
 {
-
-  //digitalWrite(13, LOW);  //blink the onboard LED
 
   //loop through the data
 
-  if (data.indexOf("TALLY") == 0) {
+  Serial.println("data is");
+  Serial.println(rawdata);
+  Serial.println(rawdata.indexOf("TALLY"));
+  
+  if (rawdata.indexOf("TALLY") == 0) {
+    Serial.println("tally data");
 
-    String tallydata = data.substring(9);
+    String tallydata = rawdata.substring(9);
     Serial.println(tallydata);
 
     int str_len = tallydata.length();
@@ -152,60 +107,59 @@ void handleData(String data)
          
     // Copy it over 
     tallydata.toCharArray(tallies, str_len);
+
+//    for(int i=0;i<10;i++) {
+//
+//      //todo convert vmix input (i) to blackmagic camera number
+//      
+//      if (tallies[i] == '1') {  //program
+//        Serial.print(F("vMix Input "));
+//        Serial.print(i + 1);
+//        Serial.print(F(" -> Atem Camera "));
+//        Serial.print(tallymap[i + 1]);
+//        Serial.print(F(" = PGM\n"));
+//        
+//        sdiTallyControl.setCameraTally(                         
+//          tallymap[i + 1],                                                     // Camera Number
+//          true,                                                  // Program Tally
+//          false                                                  // Preview Tally
+//        );
+//      } else if (tallies[i] == '2') { //preview
+//        Serial.print(F("vMix Input "));
+//        Serial.print(i + 1);
+//        Serial.print(F(" -> Atem Camera "));
+//        Serial.print(tallymap[i + 1]);
+//        Serial.print(F(" = PVW\n"));
+//        
+//        sdiTallyControl.setCameraTally(                          
+//          tallymap[i + 1],                                                     // Camera Number
+//          false,                                                  // Program Tally
+//          true                                                  // Preview Tally
+//        );
+//
+//      } else { //tally off
+//        Serial.print(F("vMix Input "));
+//        Serial.print(i + 1);
+//        Serial.print(F(" -> Atem Camera "));
+//        Serial.print(tallymap[i + 1]);
+//        Serial.print(F(" = OFF\n"));
+//
+//        sdiTallyControl.setCameraTally(                        
+//          tallymap[i + 1],                                                     // Camera Number
+//          false,                                                  // Program Tally
+//          false                                                  // Preview Tally
+//        );
+//      }
+//      
+//    }
     
-//    for(int i=0;i<str_len-1;i++) {
-    for(int i=0;i<5;i++) {
-
-    // Serial.print(tallies[i]);
-    // Serial.print("+");
-
-      //todo convert vmix input (i) to blackmagic camera number
-      
-      if (tallydata.charAt(i) == '1') {  //program
-        Serial.print(i + 1);
-        Serial.print(" -> ");
-        Serial.print(tallymap[i + 1]);
-        Serial.print(" PGM\n");
-        
-        sdiTallyControl.setCameraTally(                         
-          i,                                                     // Camera Number
-          true,                                                  // Program Tally
-          false                                                  // Preview Tally
-        );
-      } else if (tallydata.charAt(i) == '2') { //preview
-        Serial.print(i + 1);
-        Serial.print(" -> ");
-        Serial.print(tallymap[i + 1]);
-        Serial.print(" PVW\n");
-        
-        sdiTallyControl.setCameraTally(                          
-          i,                                                     // Camera Number
-          false,                                                  // Program Tally
-          true                                                  // Preview Tally
-        );
-
-      } else { //tally off
-        Serial.print(i + 1);
-        Serial.print(" -> ");
-        Serial.print(tallymap[i + 1]);
-        Serial.print(" OFF\n");
-
-        sdiTallyControl.setCameraTally(                        
-          i,                                                     // Camera Number
-          false,                                                  // Program Tally
-          false                                                  // Preview Tally
-        );
-      }
-      
-    }
-
-    
-
     //tallystate = tallies;
     
   } else {
     //we didn't get tally data, got something else
   }
-
-  //digitalWrite(13, HIGH); //blink the LED
+  
 }
+
+
+  
