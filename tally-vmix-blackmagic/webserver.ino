@@ -70,7 +70,12 @@ void processGet (const char * data) {
 
   Serial.println(data);
 
-  if(memcmp (data, "/tally", 6) == 0) {
+  if (memcmp (data, "/reboot", 6) == 0) {
+    Serial.println(F("Rebooting"));
+    delay(250);
+    reboot();
+    return;
+  } else if(memcmp (data, "/tally", 6) == 0) {
     Serial.println(F("TALLY **************"));
   } else if (memcmp (data, "/save", 5) == 0){
     Serial.println(F("SAVE **************"));
@@ -142,14 +147,14 @@ void processGet (const char * data) {
 
 
       if(strcmp(params[i][0],"vmixip") == 0) {
-        Serial.print("IP Address");
+        Serial.print(F("IP"));
         unsigned short a, b, c, d;
         sscanf(params[i][1], "%hu.%hu.%hu.%hu", &a, &b, &c, &d);
         vmixip[0] = a; vmixip[1] = b; vmixip[2] = c; vmixip[3] = d;
       }
 
       if(strcmp(params[i][0],"input0") == 0) inputs[0] = atoi(params[i][1]);
-      if(strcmp(params[i][0],"input1") == 0) { inputs[1] = atoi(params[i][1]); Serial.println("yeah 1"); }
+      if(strcmp(params[i][0],"input1") == 0) inputs[1] = atoi(params[i][1]);
       if(strcmp(params[i][0],"input2") == 0) inputs[2] = atoi(params[i][1]);
       if(strcmp(params[i][0],"input3") == 0) inputs[3] = atoi(params[i][1]);
       if(strcmp(params[i][0],"input4") == 0) inputs[4] = atoi(params[i][1]);
@@ -160,7 +165,7 @@ void processGet (const char * data) {
       if(strcmp(params[i][0],"input9") == 0) inputs[9] = atoi(params[i][1]);
 
       if(strcmp(params[i][0],"cam0") == 0) cams[0] = atoi(params[i][1]);
-      if(strcmp(params[i][0],"cam1") == 0) { cams[1] = atoi(params[i][1]); Serial.println("yeah 1"); }
+      if(strcmp(params[i][0],"cam1") == 0) cams[1] = atoi(params[i][1]);
       if(strcmp(params[i][0],"cam2") == 0) cams[2] = atoi(params[i][1]);
       if(strcmp(params[i][0],"cam3") == 0) cams[3] = atoi(params[i][1]);
       if(strcmp(params[i][0],"cam4") == 0) cams[4] = atoi(params[i][1]);

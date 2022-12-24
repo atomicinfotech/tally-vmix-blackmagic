@@ -80,3 +80,5 @@ int readIntFromEEPROM(int address)
 {
   return (EEPROM.read(address) << 8) + EEPROM.read(address + 1);
 }
+
+void(* reboot) (void) = 0; //declare reboot function @ address 0
