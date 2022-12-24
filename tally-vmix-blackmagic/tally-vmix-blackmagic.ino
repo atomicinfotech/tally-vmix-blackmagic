@@ -81,17 +81,14 @@ void vmixconnect() {
 }
 
 
-void vmixdata(String rawdata)
-{
+void vmixdata(String rawdata) {
 
-  //loop through the data
-
-  Serial.println("data is");
+  Serial.println(F("data is"));
   Serial.println(rawdata);
   Serial.println(rawdata.indexOf("TALLY"));
   
   if (rawdata.indexOf("TALLY") == 0) {
-    Serial.println("tally data");
+    Serial.println(F("Tally Data"));
 
     String tallydata = rawdata.substring(9);
     Serial.println(tallydata);
@@ -100,58 +97,12 @@ void vmixdata(String rawdata)
 
     char tallies[str_len];
          
-    // Copy it over 
     tallydata.toCharArray(tallies, str_len);
 
-//    for(int i=0;i<10;i++) {
-//
-//      //todo convert vmix input (i) to blackmagic camera number
-//      
-//      if (tallies[i] == '1') {  //program
-//        Serial.print(F("vMix Input "));
-//        Serial.print(i + 1);
-//        Serial.print(F(" -> Atem Camera "));
-//        Serial.print(tallymap[i + 1]);
-//        Serial.print(F(" = PGM\n"));
-//        
-//        sdiTallyControl.setCameraTally(                         
-//          tallymap[i + 1],                                                     // Camera Number
-//          true,                                                  // Program Tally
-//          false                                                  // Preview Tally
-//        );
-//      } else if (tallies[i] == '2') { //preview
-//        Serial.print(F("vMix Input "));
-//        Serial.print(i + 1);
-//        Serial.print(F(" -> Atem Camera "));
-//        Serial.print(tallymap[i + 1]);
-//        Serial.print(F(" = PVW\n"));
-//        
-//        sdiTallyControl.setCameraTally(                          
-//          tallymap[i + 1],                                                     // Camera Number
-//          false,                                                  // Program Tally
-//          true                                                  // Preview Tally
-//        );
-//
-//      } else { //tally off
-//        Serial.print(F("vMix Input "));
-//        Serial.print(i + 1);
-//        Serial.print(F(" -> Atem Camera "));
-//        Serial.print(tallymap[i + 1]);
-//        Serial.print(F(" = OFF\n"));
-//
-//        sdiTallyControl.setCameraTally(                        
-//          tallymap[i + 1],                                                     // Camera Number
-//          false,                                                  // Program Tally
-//          false                                                  // Preview Tally
-//        );
-//      }
-//      
-//    }
+    for(int i=0;i<10;i++) {
+      tally(tallymap[i + 1],atoi(tallies[i]));      
+    }
     
-    //tallystate = tallies;
-    
-  } else {
-    //we didn't get tally data, got something else
   }
   
 }
