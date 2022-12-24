@@ -27,26 +27,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  
-
-  
-//  for(int i=0;i<10;i++) {
-//    Serial.print(i);
-//    Serial.print(F(" :"));
-//    Serial.print(inputs[i]);
-//    Serial.print(F(" ------> "));
-//    Serial.println(cams[i]);
-//  }
-  
-  
-
-  
-  //savesettings();
-
   readsettings();
-
-  Serial.print(F("Tally map 3 => "));
-  Serial.println(tallymap(3));
 
   pinMode(13, OUTPUT);                                     // initialize digital pin 13 as an output
   
@@ -64,15 +45,7 @@ void setup()
   IPAddress myIPAddress = Ethernet.localIP(); 
   Serial.println(myIPAddress);
     
-  /* vMix connections 
-  Serial.println(F("vMix..."));
-  if(client.connect(vmixip, VMIX_PORT)) {
-    Serial.println(F("OK"));
-    client.println("SUBSCRIBE TALLY");
-  } else {
-    Serial.println(F("FAIL"));
-  }
-  */
+  vmixconnect();
   
   server.begin();
 
@@ -87,18 +60,28 @@ void loop()
   while (client.available()) {
     String rawdata = client.readStringUntil('\r\n');
     Serial.println(rawdata);
- 
-    //handleData("TALLY OK 1222010000");
-    handleData(rawdata);
-    
+    vmixdata(rawdata);
   }
-
 
   //WEB SERVER
   webclient();
 }
 
-void handleData(String rawdata)
+
+void vmixconnect() {
+  // vMix connections 
+  Serial.println(F("vMix..."));
+  if(client.connect(vmixip, VMIX_PORT)) {
+    Serial.println(F("OK"));
+    client.println("SUBSCRIBE TALLY");
+  } else {
+    Serial.println(F("FAIL"));
+  }
+  
+}
+
+
+void vmixdata(String rawdata)
 {
 
   //loop through the data

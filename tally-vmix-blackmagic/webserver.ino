@@ -92,7 +92,7 @@ void processGet (const char * data) {
   // find the trailing space
   const char * spacePos = strchr (paramsPos, ' ');
   if (spacePos == NULL) {
-    Serial.println("no spaces");
+    Serial.println(F("unknown route"));
     return;  // no space found
   }  
 
