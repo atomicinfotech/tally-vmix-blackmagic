@@ -3,7 +3,6 @@
 #include <Ethernet.h>
 #include <EEPROM.h>
 
-
 int VMIX_PORT = 8099;
 
 #define MAXTALLIES 5
@@ -11,7 +10,6 @@ int VMIX_PORT = 8099;
 byte inputs[MAXTALLIES];
 byte cams[MAXTALLIES];
 
-  
 
 //MAC is A8:61:0A:AE:74:D2
 //OUI is A8:61:0A
@@ -77,9 +75,7 @@ void vmixconnect() {
   } else {
     Serial.println(F("FAIL"));
   }
-  
 }
-
 
 void vmixdata(String rawdata) {
 
