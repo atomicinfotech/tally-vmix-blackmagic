@@ -25,3 +25,20 @@ void tally (int camera, int state) {
   Serial.println(statetext);
 
 }
+
+byte tallymap(byte input) {
+  
+  for(int i=0;i<MAXTALLIES;i++) {
+
+//      Serial.print(i);
+//      Serial.print(F(" :"));
+//      Serial.print(inputs[i]);
+//      Serial.print(F(" ------> "));
+//      Serial.println(cams[i]);
+
+      if (inputs[i] == input) {
+        return cams[i];
+      }
+  }
+  
+}
