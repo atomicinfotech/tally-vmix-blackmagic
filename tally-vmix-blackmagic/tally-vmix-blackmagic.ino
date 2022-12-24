@@ -1,10 +1,17 @@
 #include <BMDSDIControl.h>
 #include <SPI.h>
 #include <Ethernet.h>
+#include <EEPROM.h>
+
 
 int VMIX_PORT = 8099;
 
-#define TALLY_COUNT 100
+#define MAXTALLIES 5
+
+byte inputs[MAXTALLIES];
+byte cams[MAXTALLIES];
+
+  
 
 //MAC is A8:61:0A:AE:74:D2
 //OUI is A8:61:0A
@@ -13,29 +20,36 @@ EthernetServer server(80);
 
 BMD_SDITallyControl_I2C sdiTallyControl(0x6E);            // define the Tally object using I2C using the default shield address
 
+byte vmixip[] = { 10, 9, 11, 106 };
+
 // the setup function runs once when you press reset or power the board
 void setup()
 {
-  
-  //TODO
-  //Load settings from SD Card
-  //look flag bite to see if EEPROM is initialized, and if not zero out positions we'll be using
-  //check and see if we have a MAC address set
-  //randomly generate MAC address if we don't have one starting with A8:61:0A:00:00
-  //check if using DHCP
-  //if not using DHCP snag ip, subnet and gateway and use that
+  Serial.begin(115200);
 
-  char tallymap[TALLY_COUNT];
   
-  tallymap[4] = 1;      // map vmix input 1 to ATEM input 1 
-  tallymap[5] = 2;      // map vmix input 1 to ATEM input 1 
-  tallymap[6] = 3;      // map vmix input 1 to ATEM input 1 
-  tallymap[7] = 4;      // map vmix input 1 to ATEM input 1 
-  tallymap[8] = 5;      // map vmix input 1 to ATEM input 1 
 
+  
+//  for(int i=0;i<10;i++) {
+//    Serial.print(i);
+//    Serial.print(F(" :"));
+//    Serial.print(inputs[i]);
+//    Serial.print(F(" ------> "));
+//    Serial.println(cams[i]);
+//  }
+  
+  
+
+  
+  //savesettings();
+
+  readsettings();
+
+  Serial.print(F("Tally map 3 => "));
+  Serial.println(tallymap(3));
 
   pinMode(13, OUTPUT);                                     // initialize digital pin 13 as an output
-  Serial.begin(115200);
+  
 
   // the media access control (ethernet hardware) address for the shield:
   byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0x74, 0xD3 };  
@@ -45,8 +59,6 @@ void setup()
   Serial.println(F("Network..."));
   Ethernet.begin(mac);
 
-  byte vmixip[] = { 10, 9, 11, 106 };
-  
   delay(2000);
 
   IPAddress myIPAddress = Ethernet.localIP(); 
