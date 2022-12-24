@@ -13,14 +13,25 @@ void webclient() {
       while (client.available () > 0 && !done)
         done = processIncomingByte (client.read ());
       }  // end of while client connected
-
+    
     // send a standard http response header
     client.println(F("HTTP/1.1 200 OK"));
     client.println(F("Content-Type: application/json"));
     client.println(F("Connection: close"));  // close after completion of the response
     client.println();   // end of HTTP header
-    client.println(F("OK"));
 
+    client.print(F("{ \"vmixip\": \""));
+    client.print(vmixip[0]); client.print(F(".")); client.print(vmixip[1]); client.print(F(".")); client.print(vmixip[2]); client.print(F(".")); client.print(vmixip[3]);
+    client.print(F("\","));
+
+    for(int i=0;i<MAXTALLIES;i++) {
+
+      client.print(F("\"input")); client.print(i); client.print(F("\": ")); client.print(inputs[i]); client.println(F(","));
+      client.print(F("\"cam")); client.print(i); client.print(F("\": ")); client.print(cams[i]); client.println(F(","));
+    }
+
+    client.println(F("\"status\":\"OK\"}"));
+    
     // give the web browser time to receive the data
     delay(10);
     // close the connection:
@@ -57,16 +68,29 @@ const int MAX_PARAM = 150; // max length of url
 // Example GET line: GET /?foo=bar HTTP/1.1
 void processGet (const char * data) {
 
+  Serial.println(data);
+
+  if(memcmp (data, "/tally", 6) == 0) {
+    Serial.println(F("TALLY **************"));
+  } else if (memcmp (data, "/save", 5) == 0){
+    Serial.println(F("SAVE **************"));
+  } else {
+    Serial.println(F("DISPLAY SETTINGS **************"));
+  }
+
+  
   // find where the parameters start
   const char * paramsPos = strchr (data, '?'); 
-  if (paramsPos == NULL)
-    return;  // no parameters
+  //  if (paramsPos == NULL)
+  //    return;  // no parameters
     
   // find the trailing space
   const char * spacePos = strchr (paramsPos, ' ');
-  if (spacePos == NULL)
+  if (spacePos == NULL) {
+    Serial.println("no spaces");
     return;  // no space found
-    
+  }  
+
   // work out how long the parameters are
   int paramLength = spacePos - paramsPos - 1;
   // see if too long
@@ -85,13 +109,12 @@ void processGet (const char * data) {
   // parse the buffer into key value pairs
   int resultsCt = parseUrlParams(param, params, 5);
 
-  Serial.print (F("WEB COMMAND IS "));
-  Serial.println (params[0][0]);
-  
-  if (strcmp(params[0][0],"tally") == 0) {
+
+  //route the commands
+  if (memcmp (data, "/tally", 6) == 0) {
 
     Serial.println(F("WEB TALLY ----------------"));
-    for (int i = 1; i < resultsCt; i++) {
+    for (int i = 0; i < resultsCt; i++) {
     
       Serial.print(F(" Set Camera \""));
       Serial.print( params[i][0]);
@@ -105,9 +128,9 @@ void processGet (const char * data) {
     }
     
     
-  } else if (strcmp(params[0][0],"config") == 0) {
-    Serial.println(F("WEB CONFIG ----------------"));
-    for (int i = 1; i < resultsCt; i++) {
+  } else if (memcmp (data, "/save", 5) == 0) {
+    Serial.println(F("WEB SAVE ----------------"));
+    for (int i = 0; i < resultsCt; i++) {
     
       Serial.print(i);
       Serial.print(F(" key \""));
@@ -117,6 +140,60 @@ void processGet (const char * data) {
       Serial.print("\".");
       Serial.println();
 
+
+      if(strcmp(params[i][0],"vmixip") == 0) {
+        Serial.print("IP Address");
+        unsigned short a, b, c, d;
+        sscanf(params[i][1], "%hu.%hu.%hu.%hu", &a, &b, &c, &d);
+        vmixip[0] = a; vmixip[1] = b; vmixip[2] = c; vmixip[3] = d;
+      }
+
+      if(strcmp(params[i][0],"input0") == 0) inputs[0] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input1") == 0) { inputs[1] = atoi(params[i][1]); Serial.println("yeah 1"); }
+      if(strcmp(params[i][0],"input2") == 0) inputs[2] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input3") == 0) inputs[3] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input4") == 0) inputs[4] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input5") == 0) inputs[5] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input6") == 0) inputs[6] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input7") == 0) inputs[7] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input8") == 0) inputs[8] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"input9") == 0) inputs[9] = atoi(params[i][1]);
+
+      if(strcmp(params[i][0],"cam0") == 0) cams[0] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam1") == 0) { cams[1] = atoi(params[i][1]); Serial.println("yeah 1"); }
+      if(strcmp(params[i][0],"cam2") == 0) cams[2] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam3") == 0) cams[3] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam4") == 0) cams[4] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam5") == 0) cams[5] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam6") == 0) cams[6] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam7") == 0) cams[7] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam8") == 0) cams[8] = atoi(params[i][1]);
+      if(strcmp(params[i][0],"cam9") == 0) cams[9] = atoi(params[i][1]);
+
+//      TODO struggling with getting the array key to work properly.
+//      if(memcmp(params[i][0],"cam",3) == 0) {
+//        
+//        Serial.println(params[i][0]);
+//        Serial.println(params[i][0][3]);
+//        Serial.println(atoi(params[i][1]));
+//        
+//        cams[params[i][0][3]] = atoi(params[i][1]);
+//        Serial.println(F("Saved.  Readback:"));
+//        Serial.println(cams[atoi(params[i][0][3])]);
+//        
+//      }
+//
+//      if(memcmp(params[i][0],"input",5) == 0) {
+//        Serial.println(params[i][0]);
+//        Serial.println(params[i][0][5]);
+//        Serial.println(atoi(params[i][1]));
+//   
+//        inputs[params[i][0][5]] = atoi(params[i][1]);
+//        Serial.println(F("Saved.  Readback:"));
+//        Serial.println(cams[atoi(params[i][0][5])]);
+//      }
+
+      savesettings();
     }
     
   }
@@ -124,6 +201,7 @@ void processGet (const char * data) {
   Serial.println();
     
 }  // end of processGet
+
 
 // here to process incoming serial data after a terminator received
 void processData (const char * data) {
