@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic Vmix ATEM Tally Configurator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6">Atomic Vmix ATEM Tally Configurator</h1>
+        
+        <div class="mb-6">
+            <label for="deviceIp" class="block mb-2 font-semibold">Device IP:</label>
+            <div class="flex">
+                <input type="text" id="deviceIp" class="flex-grow p-2 border rounded-l" placeholder="e.g., 10.9.11.236">
+                <button id="loadConfig" class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600">Load</button>
+            </div>
+        </div>
+
+        <div id="configSection" class="hidden">
+            <div class="mb-6">
+                <label for="vmixIp" class="block mb-2 font-semibold">vMix IP:</label>
+                <div class="flex">
+                    <input type="text" id="vmixIp" class="flex-grow p-2 border rounded-l" placeholder="e.g., 192.168.10.140">
+                    <button id="saveVmixIp" class="bg-green-400px-4 py-2 rounded-r hover:bg-green-600">Save</button>
+                </div>
+            </div>
+
+            <div id="cameraBoxes" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const numCameras = 10;
+
+            function createCameraBox(index, vmixInputNum, atemCamId) {
+                return `
+                    <div class="p-4 border rounded">
+                        <h2 class="text-lg font-semibold mb-2">Camera ${index + 1}</h2>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1 p-2 border rounded">
+                                <label class="block">
+                                    <span class="block mb-1">vMix Input:</span>
+                                    <div class="flex">
+                                        <button class="decrement bg-gray-200 px-2 rounded-l" data-target="vmixInput${index}">-</button>
+                                        <input type="number" id="vmixInput${index}" class="w-full p-1 border text-center bg-gray-100" value="${vmixInputNum}" min="1">
+                                        <button class="increment bg-gray-200 px-2 rounded-r" data-target="vmixInput${index}">+</button>
+                                    </div>
+                                </label>
+                            </div>
+                            <i data-feather="arrow-right"></i>
+                            <div class="flex-1 p-2 border rounded">
+                                <label class="block">
+                                    <span class="block mb-1">ATEM Camera ID:</span>
+                                    <div class="flex">
+                                        <button class="decrement bg-gray-200 px-2 rounded-l" data-target="atemCam${index}">-</button>
+                                        <input type="number" id="atemCam${index}" class="w-full p-1 border text-center bg-gray-100" value="${atemCamId}" min="1">
+                                        <button class="increment bg-gray-200 px-2 rounded-r" data-target="atemCam${index}">+</button>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="saveCameraSettings mt-2 bg-green-400 px-4 py-2 rounded hover:bg-opacity-80 w-full" data-index="${index}">Save</button>
+                    </div>
+                `;
+            }
+
+            function loadConfig() {
+                const deviceIp = $('#deviceIp').val();
+                if (!deviceIp) {
+                    alert('Please enter Device IP');
+                    return;
+                }
+
+                $.getJSON(`http://${deviceIp}`)
+                    .done(function(config) {
+                        $('#vmixIp').val(config.vmixip || '');
+                        $('#cameraBoxes').empty();
+                        for (let i = 0; i < numCameras; i++) {
+                            const vmixInputNum = config[`input${i}`] || 1;
+                            const atemCamId = config[`cam${i}`] || 1;
+                            $('#cameraBoxes').append(createCameraBox(i, vmixInputNum, atemCamId));
+                        }
+                        $('#configSection').removeClass('hidden');
+                        feather.replace();
+                        updateQueryString(deviceIp);
+                    })
+                    .fail(function() {
+                        alert('Failed to load configuration');
+                    });
+            }
+
+            function updateQueryString(deviceIp) {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?ip=' + deviceIp;
+                window.history.pushState({path: newUrl}, '', newUrl);
+            }
+
+            function getDeviceIpFromQueryString() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('ip');
+            }
+
+            // Initialize device IP from query string
+            const initialDeviceIp = getDeviceIpFromQueryString();
+            if (initialDeviceIp) {
+                $('#deviceIp').val(initialDeviceIp);
+                loadConfig();
+            }
+
+            $('#loadConfig').click(loadConfig);
+
+            // Handle Enter key press on deviceIp input
+            $('#deviceIp').keypress(function(e) {
+                if (e.which == 13) { // Enter key
+                    loadConfig();
+                    return false;
+                }
+            });
+
+            // Increment and decrement buttons
+            $(document).on('click', '.increment, .decrement', function() {
+                const input = $(`#${$(this).data('target')}`);
+                const value = parseInt(input.val()) || 0;
+                input.val(value + ($(this).hasClass('increment') ? 1 : -1));
+            });
+
+            // Save vMix IP
+            $('#saveVmixIp').click(function() {
+                const deviceIp = $('#deviceIp').val();
+                const vmixIp = $('#vmixIp').val();
+                if (!deviceIp || !vmixIp) {
+                    alert('Please enter both Device IP and vMix IP');
+                    return;
+                }
+                $.get(`http://${deviceIp}/save?vmixip=${vmixIp}`)
+                    .done(function() {
+                        alert('vMix IP saved successfully');
+                    })
+                    .fail(function() {
+                        alert('Failed to save vMix IP');
+                    });
+            });
+
+            // Save camera settings
+            $(document).on('click', '.saveCameraSettings', function() {
+                const index = $(this).data('index');
+                const deviceIp = $('#deviceIp').val();
+                const vmixInputNum = $(`#vmixInput${index}`).val();
+                const atemCamId = $(`#atemCam${index}`).val();
+                if (!deviceIp) {
+                    alert('Please enter Device IP');
+                    return;
+                }
+                $.get(`http://${deviceIp}/save?input${index}=${vmixInputNum}&cam${index}=${atemCamId}`)
+                    .done(function() {
+                        alert(`Camera ${index + 1} settings saved successfully`);
+                    })
+                    .fail(function() {
+                        alert(`Failed to save Camera ${index + 1} settings`);
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
