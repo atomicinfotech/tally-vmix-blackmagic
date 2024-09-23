@@ -2,17 +2,17 @@
 /*
  * state: 1 = program, 2 = preview, 0 = off
  */
-void tally (int camera, int state) {
+void tally (int camera, char state) {
   bool program = false;
   bool preview = false;
   String statetext = "Off";
   
-  if (state == 1) {
+  if (state == 49) { //1
     program = true;
     statetext = "Program";
   }
 
-  if (state == 2) {
+  if (state == 50) { //2
     preview = true;
     statetext = "Preview";
   }
@@ -22,11 +22,17 @@ void tally (int camera, int state) {
   Serial.print(camera);
   Serial.print(F(" -> Atem Camera "));
   Serial.print(camera);
+  Serial.print(F(" Text state: "));
   Serial.println(statetext);
+  
 
 }
 
-byte tallymap(byte input) {
+byte tallymap(int input) {
+//  Serial.print(F("Look up input #"));
+//  Serial.println(input);
+
+  if (!input) return 0;
   
   for(int i=0;i<MAXTALLIES;i++) {
 
@@ -37,8 +43,13 @@ byte tallymap(byte input) {
 //      Serial.println(cams[i]);
 
       if (inputs[i] == input) {
+
+//        Serial.print(F("Set to cam #"));
+//        Serial.println(cams[i]);
         return cams[i];
       }
   }
+
+  return 0;
   
 }
