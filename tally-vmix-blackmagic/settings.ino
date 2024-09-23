@@ -40,7 +40,9 @@ void savesettings() {
     writeIntIntoEEPROM(100+(i*2), inputs[i]); //two bytes per int
     writeIntIntoEEPROM(200+(i*2), cams[i]); //two bytes per int
   }
-  
+
+  //re-initialize
+  setup();
 }
 
 void readsettings() {
@@ -49,7 +51,12 @@ void readsettings() {
   Serial.println(readIntFromEEPROM(ADDRVMIX1));
   Serial.println(readIntFromEEPROM(ADDRVMIX2));
   Serial.println(readIntFromEEPROM(ADDRVMIX3));
-
+  
+  vmixip[0] = readIntFromEEPROM(ADDRVMIX0);
+  vmixip[1] = readIntFromEEPROM(ADDRVMIX1);
+  vmixip[2] = readIntFromEEPROM(ADDRVMIX2);
+  vmixip[3] = readIntFromEEPROM(ADDRVMIX3);
+  
   Serial.println(F("EEPROM Tally Map ---------"));
   //read tally map from 100, 200 address space
   for(int i=0;i<MAXTALLIES;i++) {
