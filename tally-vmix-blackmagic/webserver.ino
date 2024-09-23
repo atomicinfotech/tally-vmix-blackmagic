@@ -17,6 +17,8 @@ void webclient() {
     // send a standard http response header
     client.println(F("HTTP/1.1 200 OK"));
     client.println(F("Content-Type: application/json"));
+    client.println(F("Access-Control-Allow-Origin: *"));
+
     client.println(F("Connection: close"));  // close after completion of the response
     client.println();   // end of HTTP header
 
