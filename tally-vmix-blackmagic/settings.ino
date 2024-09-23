@@ -42,7 +42,8 @@ void savesettings() {
   }
 
   //re-initialize
-  setup();
+  //TODO we really only need to reconnect to vmix if the vmix IP has changed
+  vmixconnect();
 }
 
 void readsettings() {
