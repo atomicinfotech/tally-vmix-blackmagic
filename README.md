@@ -5,6 +5,11 @@ Use your Blackmagic URSA & Studio camera tally lights with vMix for about US $15
 
 System connects to vMix tally system over IP, and converts tally data to ATEM commands over SDI that the cameras can read.  
 
+# Technical Diagram
+
+![Signal Flow Diagram](./diagram.png)
+
+
 # Required / Tested Hardware
 
 1. [Arduino Uno Mega 2560 Rev3](https://store.arduino.cc/products/arduino-mega-2560-rev3)
@@ -51,6 +56,8 @@ http://device-ip/save?input1=2&cam1=2
 # Notes & Compatibility
 
 We recommend using an Arduino Mega, due to the large amount of memory required for the HTML admin page. The Blackmagic Shield and Ethernet library use up most of the available memory. The UNO will work, but there is not enough memory to host the admin page.
+
+This workflow is compatible with Blackmagic ATEM Switchers for shading and color control of the URSA, Studio, Studio Micro cameras.  CCU control is not affected by this tool--we only alter the tally data and pass through all other camera control data (and intercom) to the cameras.
 
 # About
 
